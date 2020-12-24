@@ -57,8 +57,6 @@ class User {
       [username] 
     );
 
-    console.log(res.rows[0]);
-
     if(!res.rows[0]) {
       throw new ExpressError(`User "${username}" does not exist`, 404);
     }
@@ -87,7 +85,7 @@ class User {
    *          last_login_at } */
 
   static async get(username) {
-    const res = db.query(
+    const res = await db.query(
       `SELECT 
          username,
          first_name,
@@ -116,17 +114,17 @@ class User {
    */
 
   static async messagesFrom(username) {
-    const res = db.query(
+    const res = await db.query(
       `SELECT 
-         m.id
-         m.to_username
-         m.body
-         m.sent_at
-         m.read_at
-         u.first_name
-         u.last_name
+         m.id,
+         m.to_username,
+         m.body,
+         m.sent_at,
+         m.read_at,
+         u.first_name,
+         u.last_name,
          u.phone
-       FROM message AS m
+       FROM messages AS m
        JOIN users AS u ON m.to_username = u.username
        WHERE from_username = $1`,
       [username] 
@@ -135,7 +133,7 @@ class User {
     return res.rows.map(r => ({
       id: r.id,
       to_user: {
-        username: r.username,
+        username: r.to_username,
         first_name: r.first_name,
         last_name: r.last_name,
         phone: r.phone
@@ -155,7 +153,7 @@ class User {
    */
 
   static async messagesTo(username) {
-    const res = db.query(
+    const res = await db.query(
       `SELECT 
          m.id,
          m.from_username,
@@ -167,7 +165,7 @@ class User {
          u.phone
        FROM messages AS m
        JOIN users AS u ON m.from_username = u.username
-       WHERE username = $1`,
+       WHERE to_username = $1`,
       [username] 
     );
 
@@ -189,3 +187,5 @@ class User {
 
 
 module.exports = User;
+
+
